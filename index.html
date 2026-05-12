@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ledger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:           #e8ddd0;
+      --bg-deep:      #ddd0bf;
+      --surface:      #f2ebe0;
+      --surface2:     #ede5d8;
+      --border:       rgba(100, 80, 55, 0.13);
+      --text:         #1a1209;
+      --text2:        #4a3f30;
+      --label:        #9a8a76;
+      --green:        #2d7a4f;
+      --green-bg:     rgba(45, 122, 79, 0.12);
+      --red:          #c0392b;
+      --radius-lg:    22px;
+      --radius-md:    14px;
+      --radius-sm:    10px;
+      --shadow-card:  0 2px 16px rgba(60,40,10,0.08), 0 1px 3px rgba(60,40,10,0.05);
+      --shadow-sheet: 0 -4px 40px rgba(30,18,0,0.18);
+      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100dvh;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      padding:
+        max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(24px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ── Header ── */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 2px 20px;
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .app-wordmark {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .header-action {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text2);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.12s;
+    }
+    .header-action:active { transform: scale(0.97); background: var(--bg-deep); }
+
+    /* ── Main shell ── */
+    .main-shell {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── Base card ── */
+    .base-card {
+      background: var(--text);
+      border-radius: var(--radius-lg);
+      padding: 22px 22px 18px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .base-card::before {
+      content: '';
+      position: absolute;
+      top: -50px; right: -50px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.035);
+      pointer-events: none;
+    }
+
+    .base-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .base-currency-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .base-flag { font-size: 38px; line-height: 1; }
+    .base-info { flex: 1; }
+    .base-code {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .base-name {
+      font-size: 12px;
+      font-weight: 400;
+      opacity: 0.5;
+      margin-top: 2px;
+    }
+
+    /* ── Amount input inside base card ── */
+    .amount-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      min-width: 120px;
+    }
+
+    .amount-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: var(--font);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      color: #fff;
+      width: 100%;
+      min-width: 0;
+      text-align: right;
+    }
+    .amount-input::placeholder { color: rgba(255,255,255,0.35); }
+
+    .amount-currency-label {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.45;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .base-date {
+      font-size: 10px;
+      font-weight: 500;
+      opacity: 0.32;
+      margin-top: 14px;
+    }
+
+    /* ── Rate cards ── */
+    .rates-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (min-width: 420px) { .rates-grid { gap: 12px; } }
+
+    .rate-card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: 16px 14px 14px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease;
+      animation: fadeSlideUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .rate-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(60,40,10,0.12); }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .rate-card:nth-child(1) { animation-delay: 0.04s; }
+    .rate-card:nth-child(2) { animation-delay: 0.08s; }
+    .rate-card:nth-child(3) { animation-delay: 0.12s; }
+    .rate-card:nth-child(4) { animation-delay: 0.16s; }
+    .rate-card:nth-child(5) { animation-delay: 0.20s; }
+    .rate-card:nth-child(6) { animation-delay: 0.24s; }
+    .rate-card:nth-child(7) { animation-delay: 0.28s; }
+    .rate-card:nth-child(8) { animation-delay: 0.32s; }
+
+    .rate-card-flag  { font-size: 26px; line-height: 1; margin-bottom: 8px; }
+    .rate-card-code  { font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: var(--text2); }
+    .rate-card-name  { font-size: 10px; color: var(--label); margin-top: 1px; margin-bottom: 8px; line-height: 1.3; }
+
+    .rate-card-converted {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .rate-card-rate {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--label);
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Footer ── */
+    .app-footer {
+      max-width: 480px;
+      width: 100%;
+      margin: 20px auto 0;
+      padding: 0 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .footer-credit {
+      font-size: 11px;
+      color: var(--label);
+      text-align: center;
+      line-height: 1.5;
+    }
+    .footer-credit a {
+      color: var(--label);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* ══════════════════════════════════
+       SHEET
+    ══════════════════════════════════ */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(20,12,0,0.45);
+      backdrop-filter: blur(10px) saturate(160%);
+      -webkit-backdrop-filter: blur(10px) saturate(160%);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .sheet-backdrop.hidden { display: none; }
+
+    .sheet {
+      width: 100%;
+      max-height: min(80vh, 560px);
+      background: var(--surface);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      box-shadow: var(--shadow-sheet);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: sheetUp 0.38s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes sheetUp {
+      from { transform: translateY(32px); opacity: 0.6; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    @media (min-width: 520px) {
+      .sheet-backdrop { align-items: center; padding: 20px; }
+      .sheet { width: min(440px,100%); max-height: min(78vh,560px); border-radius: var(--radius-lg); }
+    }
+
+    .sheet-handle {
+      width: 36px; height: 4px;
+      border-radius: 2px;
+      background: rgba(100,80,55,0.22);
+      margin: 10px auto 6px;
+      flex-shrink: 0;
+    }
+
+    .sheet-head {
+      padding: 4px 22px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sheet-title    { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+    .sheet-subtitle { font-size: 12px; color: var(--label); margin-top: 3px; }
+
+    .sheet-body {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 0 0;
+    }
+
+    .carousel-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--label);
+      padding: 0 22px 10px;
+      flex-shrink: 0;
+    }
+
+    /* ── Carousel strip ── */
+    .carousel {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      /* horizontal padding = (viewport / 2) - (chip / 2) so first/last chip can center */
+      padding: 6px calc(50% - 52px) 18px;
+      touch-action: pan-x;
+    }
+    .carousel::-webkit-scrollbar { display: none; }
+    .carousel.dragging { scroll-snap-type: none; }
+
+    /* Chip */
+    .c-chip {
+      flex: 0 0 104px;
+      width: 104px;
+      scroll-snap-align: center;
+      border-radius: var(--radius-md);
+      background: var(--surface2);
+      border: 1.5px solid transparent;
+      padding: 14px 8px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+      transition:
+        opacity 0.2s ease,
+        transform 0.25s cubic-bezier(0.34,1.4,0.64,1),
+        background 0.2s ease,
+        border-color 0.2s ease;
+    }
+
+    .c-chip.dim   { opacity: 0.35; transform: scale(0.90); }
+    .c-chip.focus { opacity: 1;    transform: scale(1.0); }
+
+    .c-chip.sel-single {
+      background: var(--text);
+      border-color: transparent;
+    }
+    .c-chip.sel-single .c-code { color: #fff; }
+    .c-chip.sel-single .c-name { color: rgba(255,255,255,0.55); }
+
+    .c-chip.sel-multi {
+      border-color: var(--green);
+      background: var(--green-bg);
+    }
+
+    /* Checkmark */
+    .c-check {
+      position: absolute;
+      top: 7px; right: 7px;
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transform: scale(0.3);
+      transition: opacity 0.18s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .c-check svg {
+      width: 9px; height: 9px;
+      stroke: #fff; stroke-width: 2.5;
+      stroke-linecap: round; stroke-linejoin: round;
+      fill: none;
+    }
+    .c-chip.sel-single .c-check,
+    .c-chip.sel-multi  .c-check { opacity: 1; transform: scale(1); }
+    .c-chip.sel-single .c-check { background: rgba(255,255,255,0.2); }
+
+    .c-flag { font-size: 34px; line-height: 1; }
+    .c-code { font-size: 13px; font-weight: 700; letter-spacing: 0.01em; color: var(--text); }
+    .c-name { font-size: 9px; color: var(--label); text-align: center; line-height: 1.25; max-width: 80px; }
+
+    /* Selected pills (step 2) */
+    .selected-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 4px 18px 14px;
+      min-height: 34px;
+      flex-shrink: 0;
+    }
+    .pill {
+      background: var(--green-bg);
+      border: 1px solid rgba(45,122,79,0.3);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .pill-remove {
+      background: none; border: none;
+      font-size: 13px; line-height: 1;
+      color: var(--green); cursor: pointer;
+      padding: 0; opacity: 0.65;
+    }
+    .pill-remove:hover { opacity: 1; }
+
+    /* ── Sheet foot ── */
+    .sheet-foot {
+      padding: 10px 14px max(16px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .btn {
+      width: 100%;
+      display: block;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 15px 16px;
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+      letter-spacing: -0.01em;
+      text-align: center;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--text); color: #fff; }
+    .btn-primary:disabled { opacity: 0.28; cursor: not-allowed; transform: none; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px;
+      margin-top: 2px;
+    }
+
+    .setup-error {
+      font-size: 12px;
+      color: var(--red);
+      text-align: center;
+      padding: 6px 14px 0;
+      min-height: 1em;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <span class="app-wordmark">Ledger</span>
+    <button type="button" class="header-action hidden" id="changeCurrenciesBtn">Change</button>
+  </header>
+
+  <!-- Main rates view -->
+  <main class="main-shell hidden" id="mainShell">
+    <div class="base-card">
+      <div class="base-card-top">
+        <div class="base-currency-row">
+          <div class="base-flag" id="baseFlag"></div>
+          <div class="base-info">
+            <div class="base-code" id="baseCode"></div>
+            <div class="base-name" id="baseName"></div>
+          </div>
+        </div>
+        <div class="amount-wrap">
+          <input
+            type="text"
+            inputmode="decimal"
+            class="amount-input"
+            id="amountInput"
+            value="1"
+            autocomplete="off"
+            aria-label="Amount"
+            placeholder="1"
+          />
+          <span class="amount-currency-label" id="amountLabel"></span>
+        </div>
+      </div>
+      <div class="base-date" id="baseDate"></div>
+    </div>
+
+    <div class="rates-grid" id="ratesGrid"></div>
+  </main>
+
+  <!-- Setup sheet -->
+  <div id="sheetBackdrop" class="sheet-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet">
+      <div class="sheet-handle" aria-hidden="true"></div>
+
+      <div class="sheet-head">
+        <div class="sheet-title" id="sheetTitle">Set up Ledger</div>
+        <div class="sheet-subtitle" id="sheetSubtitle">Scroll to browse, tap to select your base currency.</div>
+      </div>
+
+      <div class="sheet-body">
+        <div id="step1">
+          <div class="carousel-section-label">Base currency</div>
+          <div class="carousel" id="carousel1" role="listbox" aria-label="Base currency"></div>
+        </div>
+
+        <div id="step2" class="hidden">
+          <div class="carousel-section-label">Track currencies</div>
+          <div class="carousel" id="carousel2" role="listbox" aria-label="Comparator currencies"></div>
+          <div class="selected-pills" id="selectedPills"></div>
+        </div>
+      </div>
+
+      <p class="setup-error" id="setupError" aria-live="polite"></p>
+
+      <div class="sheet-foot">
+        <div id="footStep1">
+          <button type="button" class="btn btn-primary" id="toStep2">Continue</button>
+        </div>
+        <div id="footStep2" class="hidden">
+          <button type="button" class="btn btn-primary" id="fetchStartBtn" disabled>Fetch rates &amp; start</button>
+          <button type="button" class="btn btn-ghost" id="backToStep1">← Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer hidden" id="appFooter">
+    <p class="footer-credit">
+      Exchange rates by <a href="https://www.frankfurter.app" target="_blank" rel="noopener">Frankfurter</a>,
+      sourced from the <a href="https://www.ecb.europa.eu" target="_blank" rel="noopener">European Central Bank</a>.
+    </p>
+    <p class="footer-credit">For reference only — not real-time market data.</p>
+  </footer>
+
+  <script type="module">
+    import { fetchRates } from "./APIrequest.js";
+
+    const STORAGE_KEY = "ledgerV3";
+
+    let currenciesData = {};
+    let currencyCodes  = [];
+    let appConfig      = null;
+    let setupStep      = 1;
+    let selectedBase   = "";
+    const selectedComps = new Set();
+
+    const els = {
+      mainShell:           document.getElementById("mainShell"),
+      baseFlag:            document.getElementById("baseFlag"),
+      baseCode:            document.getElementById("baseCode"),
+      baseName:            document.getElementById("baseName"),
+      baseDate:            document.getElementById("baseDate"),
+      amountInput:         document.getElementById("amountInput"),
+      amountLabel:         document.getElementById("amountLabel"),
+      ratesGrid:           document.getElementById("ratesGrid"),
+      changeCurrenciesBtn: document.getElementById("changeCurrenciesBtn"),
+      sheetBackdrop:       document.getElementById("sheetBackdrop"),
+      sheetTitle:          document.getElementById("sheetTitle"),
+      sheetSubtitle:       document.getElementById("sheetSubtitle"),
+      step1:               document.getElementById("step1"),
+      step2:               document.getElementById("step2"),
+      carousel1:           document.getElementById("carousel1"),
+      carousel2:           document.getElementById("carousel2"),
+      selectedPills:       document.getElementById("selectedPills"),
+      footStep1:           document.getElementById("footStep1"),
+      footStep2:           document.getElementById("footStep2"),
+      toStep2:             document.getElementById("toStep2"),
+      backToStep1:         document.getElementById("backToStep1"),
+      fetchStartBtn:       document.getElementById("fetchStartBtn"),
+      setupError:          document.getElementById("setupError"),
+      appFooter:           document.getElementById("appFooter"),
+    };
+
+    // ── Storage ──────────────────────────────────────────
+    function loadConfig() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const p = JSON.parse(raw);
+        if (p?.baseCurrency && Array.isArray(p.comparators) && p.comparators.length && p.rates) return p;
+      } catch {}
+      return null;
+    }
+    function saveConfig(c) { localStorage.setItem(STORAGE_KEY, JSON.stringify(c)); }
+
+    // ── Sheet ─────────────────────────────────────────────
+    function showSheet() { els.sheetBackdrop.classList.remove("hidden"); document.body.style.overflow = "hidden"; }
+    function hideSheet() { els.sheetBackdrop.classList.add("hidden");    document.body.style.overflow = ""; }
+
+    // ── Carousel ──────────────────────────────────────────
+
+    function renderCarousel(carousel, codes, mode) {
+      carousel.innerHTML = "";
+      for (const code of codes) {
+        const meta = currenciesData[code];
+        const chip = document.createElement("div");
+        chip.className = "c-chip dim";
+        chip.dataset.code = code;
+        chip.setAttribute("role", "option");
+        chip.innerHTML = `
+          <div class="c-check" aria-hidden="true">
+            <svg viewBox="0 0 12 10"><polyline points="1.5,5 4.5,8 10.5,2"/></svg>
+          </div>
+          <span class="c-flag">${meta.flag}</span>
+          <span class="c-code">${code}</span>
+          <span class="c-name">${meta.name}</span>
+        `;
+        carousel.appendChild(chip);
+      }
+      attachCarouselEvents(carousel, mode);
+    }
+
+    /** Returns index of chip whose center is nearest to carousel midpoint */
+    function getCenterIdx(carousel) {
+      const chips = carousel.querySelectorAll(".c-chip");
+      if (!chips.length) return 0;
+      const mid = carousel.getBoundingClientRect().left + carousel.offsetWidth / 2;
+      let best = 0, bestD = Infinity;
+      chips.forEach((c, i) => {
+        const r = c.getBoundingClientRect();
+        const d = Math.abs(r.left + r.width / 2 - mid);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      return best;
+    }
+
+    function refreshVisuals(carousel, mode) {
+      const chips = carousel.querySelectorAll(".c-chip");
+      const ci    = getCenterIdx(carousel);
+      chips.forEach((chip, i) => {
+        const code = chip.dataset.code;
+        chip.classList.remove("dim", "focus", "sel-single", "sel-multi");
+        chip.classList.add(i === ci ? "focus" : "dim");
+        if (mode === "single" && code === selectedBase)      chip.classList.add("sel-single");
+        if (mode === "multi"  && selectedComps.has(code))    chip.classList.add("sel-multi");
+        chip.setAttribute("aria-selected",
+          mode === "single" ? String(code === selectedBase) : String(selectedComps.has(code)));
+      });
+    }
+
+    function scrollToCode(carousel, code) {
+      const chip = carousel.querySelector(`[data-code="${code}"]`);
+      if (chip) chip.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    }
+
+    function attachCarouselEvents(carousel, mode) {
+      // ── Pointer: tap vs drag ──────────────────────────
+      let pDown = false, pStartX = 0, pStartScroll = 0, pStartT = 0, pChip = null;
+
+      carousel.addEventListener("pointerdown", e => {
+        if (e.button !== 0) return;
+        pDown = true;
+        pChip = e.target.closest(".c-chip");
+        pStartX = e.clientX;
+        pStartScroll = carousel.scrollLeft;
+        pStartT = performance.now();
+        try { carousel.setPointerCapture(e.pointerId); } catch {}
+      });
+
+      carousel.addEventListener("pointermove", e => {
+        if (!pDown) return;
+        carousel.scrollLeft = pStartScroll - (e.clientX - pStartX);
+      });
+
+      carousel.addEventListener("pointerup", e => {
+        if (!pDown) return;
+        pDown = false;
+        try { carousel.releasePointerCapture(e.pointerId); } catch {}
+
+        const scrolled = Math.abs(carousel.scrollLeft - pStartScroll) > 8;
+        const quick    = performance.now() - pStartT < 450;
+        const small    = Math.abs(e.clientX - pStartX) < 14;
+        const isTap    = small && !scrolled && quick;
+        const chip     = pChip; pChip = null;
+
+        if (!isTap || !chip) return;
+        const code = chip.dataset.code;
+        if (!code) return;
+
+        if (mode === "single") {
+          selectedBase = code;
+          scrollToCode(carousel, code);
+          setTimeout(() => refreshVisuals(carousel, "single"), 120);
+        } else {
+          if (selectedComps.has(code)) {
+            if (selectedComps.size > 1) selectedComps.delete(code);
+          } else {
+            selectedComps.add(code);
+          }
+          scrollToCode(carousel, code);
+          setTimeout(() => { refreshVisuals(carousel, "multi"); renderPills(); }, 120);
+          els.fetchStartBtn.disabled = selectedComps.size === 0;
+        }
+      });
+
+      carousel.addEventListener("pointercancel", () => { pDown = false; pChip = null; });
+
+      // ── Scroll end → update dim/focus + auto-select in single mode ──
+      let scrollTimer;
+      carousel.addEventListener("scroll", () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          refreshVisuals(carousel, mode);
+          if (mode === "single") {
+            const chips = carousel.querySelectorAll(".c-chip");
+            const ci    = getCenterIdx(carousel);
+            const code  = chips[ci]?.dataset.code;
+            if (code) { selectedBase = code; refreshVisuals(carousel, "single"); }
+          }
+        }, 55);
+      }, { passive: true });
+
+      // ── Desktop mouse drag ────────────────────────────
+      let mArmed = false, mDrag = false, mStartX = 0, mOrigin = 0;
+
+      carousel.addEventListener("mousedown", e => {
+        if (e.button !== 0) return;
+        mArmed = true; mDrag = false;
+        mStartX = e.clientX; mOrigin = carousel.scrollLeft;
+      });
+      window.addEventListener("mousemove", e => {
+        if (!mArmed) return;
+        if (!mDrag && Math.abs(e.clientX - mStartX) > 6) {
+          mDrag = true;
+          carousel.classList.add("dragging");
+        }
+        if (mDrag) carousel.scrollLeft = mOrigin - (e.clientX - mStartX);
+      });
+      window.addEventListener("mouseup", () => {
+        if (!mArmed) return;
+        mArmed = false;
+        if (mDrag) { mDrag = false; carousel.classList.remove("dragging"); }
+      });
+    }
+
+    function renderPills() {
+      els.selectedPills.innerHTML = "";
+      for (const code of selectedComps) {
+        const meta = currenciesData[code];
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.innerHTML = `${meta.flag} ${code}
+          <button class="pill-remove" aria-label="Remove ${code}" data-code="${code}">×</button>`;
+        pill.querySelector(".pill-remove").addEventListener("click", () => {
+          if (selectedComps.size > 1) {
+            selectedComps.delete(code);
+            refreshVisuals(els.carousel2, "multi");
+            renderPills();
+            els.fetchStartBtn.disabled = selectedComps.size === 0;
+          }
+        });
+        els.selectedPills.appendChild(pill);
+      }
+    }
+
+    // ── Steps ──────────────────────────────────────────────
+    function showStep1() {
+      setupStep = 1;
+      els.step1.classList.remove("hidden");
+      els.step2.classList.add("hidden");
+      els.footStep1.classList.remove("hidden");
+      els.footStep2.classList.add("hidden");
+      els.sheetTitle.textContent    = "Set up Ledger";
+      els.sheetSubtitle.textContent = "Scroll to browse, tap to select your base currency.";
+      if (!selectedBase || !currencyCodes.includes(selectedBase)) selectedBase = currencyCodes[0] || "";
+      renderCarousel(els.carousel1, currencyCodes, "single");
+      requestAnimationFrame(() => {
+        scrollToCode(els.carousel1, selectedBase);
+        setTimeout(() => refreshVisuals(els.carousel1, "single"), 150);
+      });
+    }
+
+    function showStep2() {
+      setupStep = 2;
+      els.step1.classList.add("hidden");
+      els.step2.classList.remove("hidden");
+      els.footStep1.classList.add("hidden");
+      els.footStep2.classList.remove("hidden");
+      els.sheetTitle.textContent    = "Track currencies";
+      els.sheetSubtitle.textContent = "Scroll & tap to toggle. Keep at least one.";
+      const list = currencyCodes.filter(c => c !== selectedBase);
+      selectedComps.delete(selectedBase);
+      if (selectedComps.size === 0 && list.length) selectedComps.add(list[0]);
+      renderCarousel(els.carousel2, list, "multi");
+      els.fetchStartBtn.disabled = selectedComps.size === 0;
+      renderPills();
+      requestAnimationFrame(() => {
+        const first = Array.from(selectedComps)[0];
+        if (first) scrollToCode(els.carousel2, first);
+        setTimeout(() => refreshVisuals(els.carousel2, "multi"), 150);
+      });
+    }
+
+    function openSetupFromScratch() {
+      appConfig = null;
+      selectedComps.clear();
+      selectedBase = currencyCodes[0] || "";
+      els.setupError.textContent = "";
+      showStep1();
+      showSheet();
+    }
+
+    // ── Rates view ─────────────────────────────────────────
+    function getAmount() {
+      const n = parseFloat(els.amountInput.value.trim().replace(",", "."));
+      return Number.isFinite(n) && n >= 0 ? n : 1;
+    }
+
+    function fmtConverted(n, code) {
+      if (!Number.isFinite(n)) return "—";
+      const dec = ["JPY","HUF","ISK"].includes(code) ? 0 : 2;
+      try { return new Intl.NumberFormat(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(n); }
+      catch { return n.toFixed(dec); }
+    }
+
+    function fmtRate(n, code) {
+      if (!Number.isFinite(n)) return "—";
+      const dec = ["JPY","HUF","ISK"].includes(code) ? 2 : 4;
+      try { return new Intl.NumberFormat(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(n); }
+      catch { return n.toFixed(dec); }
+    }
+
+    function fmtRelative(ts) {
+      const d = Date.now() - ts;
+      if (d < 60_000) return "just now";
+      if (d < 3_600_000) return `${Math.floor(d/60_000)}m ago`;
+      if (d < 86_400_000) return `${Math.floor(d/3_600_000)}h ago`;
+      return new Date(ts).toLocaleDateString(undefined, { month:"short", day:"numeric" });
+    }
+
+    function updateConvertedValues() {
+      if (!appConfig) return;
+      const amount = getAmount();
+      els.ratesGrid.querySelectorAll(".rate-card").forEach(card => {
+        const code = card.dataset.code;
+        const rate = appConfig.rates[code];
+        const v    = Number.isFinite(rate) ? amount * rate : NaN;
+        card.querySelector(".rate-card-converted").textContent = fmtConverted(v, code);
+      });
+    }
+
+    function populateRatesView() {
+      const { baseCurrency, comparators, rates, date, fetchedAt } = appConfig;
+      const meta = currenciesData[baseCurrency];
+      els.baseFlag.textContent  = meta.flag;
+      els.baseCode.textContent  = baseCurrency;
+      els.baseName.textContent  = `${meta.name} · ${meta.country}`;
+      els.amountLabel.textContent = baseCurrency;
+      els.baseDate.textContent  =
+        (date ? `Rates for ${date}` : "") +
+        (fetchedAt ? ` · Updated ${fmtRelative(fetchedAt)}` : "");
+
+      els.ratesGrid.innerHTML = "";
+      for (const code of comparators) {
+        const cm = currenciesData[code];
+        if (!cm) continue;
+        const rate = rates[code];
+        const card = document.createElement("div");
+        card.className = "rate-card";
+        card.dataset.code = code;
+        card.innerHTML = `
+          <div class="rate-card-flag">${cm.flag}</div>
+          <div class="rate-card-code">${code}</div>
+          <div class="rate-card-name">${cm.name}</div>
+          <div class="rate-card-converted">—</div>
+          <div class="rate-card-rate">1 ${baseCurrency} = ${fmtRate(rate, code)} ${code}</div>
+        `;
+        els.ratesGrid.appendChild(card);
+      }
+
+      // Animate count-up for initial render
+      const amount = getAmount();
+      els.ratesGrid.querySelectorAll(".rate-card").forEach(card => {
+        const code   = card.dataset.code;
+        const rate   = appConfig.rates[code];
+        if (!Number.isFinite(rate)) return;
+        const target = amount * rate;
+        const el     = card.querySelector(".rate-card-converted");
+        const t0     = performance.now();
+        const dur    = 550;
+        (function tick(now) {
+          const p = Math.min(1, (now - t0) / dur);
+          el.textContent = fmtConverted(target * (1 - Math.pow(1 - p, 3)), code);
+          if (p < 1) requestAnimationFrame(tick);
+          else el.textContent = fmtConverted(target, code);
+        })(performance.now());
+      });
+    }
+
+    // ── Bootstrap ──────────────────────────────────────────
+    async function bootstrap() {
+      const res = await fetch("./currencies.json");
+      currenciesData = await res.json();
+      currencyCodes  = Object.keys(currenciesData);
+
+      els.toStep2.addEventListener("click", showStep2);
+      els.backToStep1.addEventListener("click", showStep1);
+
+      els.amountInput.addEventListener("input", updateConvertedValues);
+      els.amountInput.addEventListener("blur", () => {
+        if (!els.amountInput.value.trim()) els.amountInput.value = "1";
+        updateConvertedValues();
+      });
+
+      els.fetchStartBtn.addEventListener("click", async () => {
+        els.setupError.textContent = "";
+        els.fetchStartBtn.disabled = true;
+        els.fetchStartBtn.innerHTML = '<span class="spinner"></span>Fetching…';
+        try {
+          const base  = selectedBase;
+          const comps = Array.from(selectedComps);
+          const { rates, date } = await fetchRates(base, comps);
+          appConfig = { baseCurrency: base, comparators: comps, rates, date, fetchedAt: Date.now() };
+          saveConfig(appConfig);
+          hideSheet();
+          els.mainShell.classList.remove("hidden");
+          els.changeCurrenciesBtn.classList.remove("hidden");
+          els.appFooter.classList.remove("hidden");
+          populateRatesView();
+        } catch (err) {
+          els.setupError.textContent = err.message || "Could not fetch rates.";
+        } finally {
+          els.fetchStartBtn.disabled  = selectedComps.size === 0;
+          els.fetchStartBtn.innerHTML = "Fetch rates &amp; start";
+        }
+      });
+
+      els.changeCurrenciesBtn.addEventListener("click", () => {
+        els.mainShell.classList.add("hidden");
+        els.changeCurrenciesBtn.classList.add("hidden");
+        els.appFooter.classList.add("hidden");
+        openSetupFromScratch();
+      });
+
+      const existing = loadConfig();
+      if (!existing) { showStep1(); showSheet(); return; }
+
+      appConfig = existing;
+      els.mainShell.classList.remove("hidden");
+      els.changeCurrenciesBtn.classList.remove("hidden");
+      els.appFooter.classList.remove("hidden");
+      populateRatesView();
+
+      try {
+        const { rates, date } = await fetchRates(existing.baseCurrency, existing.comparators);
+        appConfig = { ...existing, rates, date, fetchedAt: Date.now() };
+        saveConfig(appConfig);
+        populateRatesView();
+      } catch { /* keep cached */ }
+    }
+
+    bootstrap();
+  </script>
+</body>
+</html>
