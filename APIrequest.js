@@ -16,7 +16,7 @@ export async function fetchRates(baseCurrency, comparators) {
   const toParam = encodeURIComponent(list.join(","));
   const from = encodeURIComponent(baseCurrency);
   //const url = `https://corsproxy.io/?https://api.frankfurter.app/latest?from=${from}&to=${toParam}`;
-  const url = `https://api.frankfurter.app/latest?from=${from}&to=${toParam}`;
+  const url = `/api/rates/latest?from=${from}&to=${toParam}`;
 
 
   let response;
