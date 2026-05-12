@@ -55,17 +55,11 @@
     .app-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       padding: 8px 2px 20px;
       max-width: 480px;
       width: 100%;
       margin: 0 auto;
-    }
-
-    .app-wordmark {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.04em;
     }
 
     .header-action {
@@ -374,16 +368,11 @@
     .c-chip.dim   { opacity: 0.35; transform: scale(0.90); }
     .c-chip.focus { opacity: 1;    transform: scale(1.0); }
 
-    .c-chip.sel-single {
-      background: var(--text);
-      border-color: transparent;
-    }
-    .c-chip.sel-single .c-code { color: #fff; }
-    .c-chip.sel-single .c-name { color: rgba(255,255,255,0.55); }
-
+    /* Selected styling for both steps - simplified */
+    .c-chip.sel-single,
     .c-chip.sel-multi {
-      border-color: var(--green);
       background: var(--green-bg);
+      border-color: transparent;
     }
 
     /* Checkmark */
@@ -406,7 +395,6 @@
     }
     .c-chip.sel-single .c-check,
     .c-chip.sel-multi  .c-check { opacity: 1; transform: scale(1); }
-    .c-chip.sel-single .c-check { background: rgba(255,255,255,0.2); }
 
     .c-flag { font-size: 34px; line-height: 1; }
     .c-code { font-size: 13px; font-weight: 700; letter-spacing: 0.01em; color: var(--text); }
@@ -495,7 +483,6 @@
 <body>
 
   <header class="app-header">
-    <span class="app-wordmark">Ledger</span>
     <button type="button" class="header-action hidden" id="changeCurrenciesBtn">Change</button>
   </header>
 
@@ -572,7 +559,6 @@
       Exchange rates by <a href="https://www.frankfurter.app" target="_blank" rel="noopener">Frankfurter</a>,
       sourced from the <a href="https://www.ecb.europa.eu" target="_blank" rel="noopener">European Central Bank</a>.
     </p>
-    <p class="footer-credit">For reference only — not real-time market data.</p>
   </footer>
 
   <script type="module">
@@ -887,7 +873,7 @@
       const meta = currenciesData[baseCurrency];
       els.baseFlag.textContent  = meta.flag;
       els.baseCode.textContent  = baseCurrency;
-      els.baseName.textContent  = `${meta.name} · ${meta.country}`;
+      els.baseName.textContent  = meta.name;
       els.amountLabel.textContent = baseCurrency;
       els.baseDate.textContent  =
         (date ? `Rates for ${date}` : "") +
