@@ -3,7 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Ledger</title>
+  <title>RioWallet - Minimalistic Currency Converter | Real-Time ECB Rates</title>
+  <meta name="description" content="Minimalistic currency converter with real-time exchange rates. Convert any currency instantly, no ads. Perfect for travelers. PWA (works offline)" />
+  <meta name="keywords" content="currency converter, exchange rates, real-time rates, currency exchange, forex converter, travel money converter" />
+  <meta name="theme-color" content="#1a1209" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./assets/UI/logo2.svg" />
+  <link rel="shortcut icon" href="./assets/UI/logo1.svg" />
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192_2.png" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://riowallet.netlify.app/" />
+  <meta property="og:title" content="RioWallet - Minimalistic Currency Converter" />
+  <meta property="og:description" content="Convert currencies with real-time exchange rates. Lightning-fast, minimalist design, no ads. Your daily currency converter." />
+  <meta property="og:image" content="./assets/UI/logo2.svg" />
+  <meta property="og:site_name" content="RioWallet" />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:url" content="https://riowallet.netlify.app/" />
+  <meta name="twitter:title" content="RioWallet - Minimalistic Currency Converter" />
+  <meta name="twitter:description" content="Real-time exchange rates. Convert currencies instantly with RioWallet's minimal, distraction-free interface." />
+  <meta name="twitter:image" content="./assets/UI/logo2.svg" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -51,15 +78,89 @@
 
     .hidden { display: none !important; }
 
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ── Offline Banner ── */
+    .offline-banner {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%) translateY(-150%);
+      background: var(--surface);
+      color: var(--text2);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(30, 18, 0, 0.12);
+      z-index: 9999;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .offline-banner::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+    }
+    .offline-banner.is-offline {
+      transform: translateX(-50%) translateY(0);
+    }
+
     /* ── Header ── */
     .app-header {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: center;
       padding: 8px 2px 20px;
       max-width: 480px;
       width: 100%;
       margin: 0 auto;
+    }
+
+    .header-attribution {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--label);
+      text-align: center;
+      line-height: 1.45;
+      padding: 0 8px;
+      order: -1;
+      width: 100%;
+    }
+    .header-attribution a {
+      color: var(--label);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    @media (max-width: 519px) {
+      .app-header {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 6px;
+        padding: 6px 2px 12px;
+      }
+    }
+
+    @media (min-width: 520px) {
+      .header-attribution { display: none !important; }
     }
 
     .header-action {
@@ -75,6 +176,17 @@
       transition: background 0.15s, transform 0.12s;
     }
     .header-action:active { transform: scale(0.97); background: var(--bg-deep); }
+
+    @media (max-width: 519px) {
+      #changeCurrenciesBtn { display: none !important; }
+      #headerInfoBtn { display: none !important; }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
 
     /* ── Main shell ── */
     .main-shell {
@@ -118,7 +230,14 @@
       align-items: center;
       gap: 10px;
     }
-    .base-flag { font-size: 38px; line-height: 1; }
+    .base-flag { line-height: 0; flex-shrink: 0; }
+    .base-flag .flag-img {
+      width: 44px; height: 33px;
+      display: block;
+      object-fit: cover;
+      border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
     .base-info { flex: 1; }
     .base-code {
       font-size: 26px;
@@ -208,7 +327,14 @@
     .rate-card:nth-child(7) { animation-delay: 0.28s; }
     .rate-card:nth-child(8) { animation-delay: 0.32s; }
 
-    .rate-card-flag  { font-size: 26px; line-height: 1; margin-bottom: 8px; }
+    .rate-card-flag { line-height: 0; margin-bottom: 8px; }
+    .rate-card-flag .flag-img {
+      width: 36px; height: 27px;
+      display: block;
+      object-fit: cover;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
     .rate-card-code  { font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: var(--text2); }
     .rate-card-name  { font-size: 10px; color: var(--label); margin-top: 1px; margin-bottom: 8px; line-height: 1.3; }
 
@@ -252,9 +378,218 @@
       text-underline-offset: 2px;
     }
 
-    /* ══════════════════════════════════
-       SHEET
-    ══════════════════════════════════ */
+    @media (max-width: 519px) {
+      .app-footer { display: none !important; }
+    }
+
+    /* ── Mobile bottom bar (rates view) ── */
+    .mobile-bottom-bar {
+      display: none;
+      position: fixed;
+      z-index: 40;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      padding: 6px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      background: rgba(242, 235, 224, 0.94);
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -8px 32px rgba(30, 18, 0, 0.08);
+      align-items: center;
+    }
+    .mobile-bottom-bar:not(.hidden) {
+      display: flex;
+    }
+    @media (min-width: 520px) {
+      .mobile-bottom-bar { display: none !important; }
+    }
+
+    .mobile-bottom-bar__col {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      min-height: 52px;
+      min-width: 0;
+    }
+    .mobile-bottom-bar__col--center {
+      justify-content: center;
+      flex: 1.15;
+    }
+    .mobile-bottom-bar__col--end {
+      justify-content: flex-end;
+      padding-right: 10px;
+    }
+
+    .mobile-bottom-bar__hit {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      border-radius: 999px;
+      transition:
+        transform 0.22s cubic-bezier(0.34, 1.45, 0.64, 1),
+        opacity 0.18s ease,
+        background 0.2s ease;
+    }
+    .mobile-bottom-bar__hit:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 3px;
+    }
+    .mobile-bottom-bar__hit:active {
+      transform: scale(0.88);
+      opacity: 0.82;
+    }
+    .mobile-bottom-bar__hit--reset {
+      width: 80px;
+      height: 80px;
+      padding: 0;
+    }
+    .mobile-bottom-bar__hit--reset:active {
+      background: rgba(100, 80, 55, 0.08);
+    }
+    .mobile-bottom-bar__icon--reset {
+      width: 50px;
+      height: 50px;
+      display: block;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    .mobile-bottom-bar__hit--info {
+      width: 60px;
+      height: 60px;
+      padding: 0;
+    }
+    .mobile-bottom-bar__hit--info:active {
+      background: rgba(100, 80, 55, 0.1);
+    }
+    .mobile-bottom-bar__icon--info {
+      width: 45px;
+      height: 45px;
+      display: block;
+      object-fit: contain;
+      opacity: 0.82;
+      pointer-events: none;
+    }
+
+    .mobile-bottom-bar__ripple {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(26, 18, 9, 0.18) 0%, rgba(26, 18, 9, 0.06) 42%, transparent 70%);
+      transform: translate(-50%, -50%) scale(0.15);
+      opacity: 0.95;
+      width: 24px;
+      height: 24px;
+      animation: barRipple 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes barRipple {
+      to {
+        transform: translate(-50%, -50%) scale(5);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 519px) {
+      body.rates-view {
+        padding-bottom: calc(68px + env(safe-area-inset-bottom));
+      }
+    }
+
+    /* ── Info modal ── */
+    .info-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+    }
+    .info-modal.hidden {
+      display: none !important;
+      pointer-events: none;
+    }
+    .info-modal__backdrop {
+      position: absolute;
+      inset: 0;
+      border: none;
+      padding: 0;
+      margin: 0;
+      background: rgba(20, 12, 0, 0.42);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      cursor: pointer;
+      animation: infoFadeIn 0.28s ease forwards;
+    }
+    @keyframes infoFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .info-modal__panel {
+      position: relative;
+      z-index: 1;
+      width: min(340px, 100%);
+      min-height: 200px;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sheet);
+      animation: infoPanelIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes infoPanelIn {
+      from {
+        opacity: 0;
+        transform: scale(0.94) translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .info-modal__close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: var(--surface2);
+      color: var(--text2);
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, background 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .info-modal__close:hover {
+      background: var(--bg-deep);
+    }
+    .info-modal__close:active {
+      transform: scale(0.9);
+      background: rgba(100, 80, 55, 0.12);
+    }
+    .info-modal__body {
+      min-height: 160px;
+      padding: 52px 22px 28px;
+    }
+
+    /* ── Sheet ── */
     .sheet-backdrop {
       position: fixed;
       inset: 0;
@@ -263,7 +598,7 @@
       backdrop-filter: blur(10px) saturate(160%);
       -webkit-backdrop-filter: blur(10px) saturate(160%);
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
     }
     .sheet-backdrop.hidden { display: none; }
@@ -333,14 +668,12 @@
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
-      /* horizontal padding = (viewport / 2) - (chip / 2) so first/last chip can center */
       padding: 6px calc(50% - 52px) 18px;
       touch-action: pan-x;
     }
     .carousel::-webkit-scrollbar { display: none; }
     .carousel.dragging { scroll-snap-type: none; }
 
-    /* Chip */
     .c-chip {
       flex: 0 0 104px;
       width: 104px;
@@ -368,14 +701,12 @@
     .c-chip.dim   { opacity: 0.35; transform: scale(0.90); }
     .c-chip.focus { opacity: 1;    transform: scale(1.0); }
 
-    /* Selected styling for both steps - simplified */
     .c-chip.sel-single,
     .c-chip.sel-multi {
       background: var(--green-bg);
       border-color: transparent;
     }
 
-    /* Checkmark */
     .c-check {
       position: absolute;
       top: 7px; right: 7px;
@@ -396,11 +727,17 @@
     .c-chip.sel-single .c-check,
     .c-chip.sel-multi  .c-check { opacity: 1; transform: scale(1); }
 
-    .c-flag { font-size: 34px; line-height: 1; }
+    .c-chip .flag-img {
+      width: 38px; height: 29px;
+      display: block;
+      object-fit: cover;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
     .c-code { font-size: 13px; font-weight: 700; letter-spacing: 0.01em; color: var(--text); }
     .c-name { font-size: 9px; color: var(--label); text-align: center; line-height: 1.25; max-width: 80px; }
 
-    /* Selected pills (step 2) */
+    /* Selected pills */
     .selected-pills {
       display: flex;
       flex-wrap: wrap;
@@ -417,7 +754,14 @@
       font-size: 11px;
       font-weight: 600;
       color: var(--green);
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .pill .flag-img {
+      width: 18px; height: 14px;
+      display: block;
+      object-fit: cover;
+      border-radius: 2px;
+      flex-shrink: 0;
     }
     .pill-remove {
       background: none; border: none;
@@ -482,8 +826,17 @@
 </head>
 <body>
 
+  <div id="offlineBanner" class="offline-banner">Offline — showing cached rates</div>
+
   <header class="app-header">
-    <button type="button" class="header-action hidden" id="changeCurrenciesBtn">Change</button>
+    <p class="header-attribution hidden" id="headerAttribution">
+      Rates by <a href="https://www.frankfurter.app" target="_blank" rel="noopener">Frankfurter</a>
+      · <a href="https://www.ecb.europa.eu" target="_blank" rel="noopener">ECB</a>
+    </p>
+    <div class="header-actions">
+      <button type="button" class="header-action hidden" id="changeCurrenciesBtn">Change</button>
+      <button type="button" class="header-action hidden" id="headerInfoBtn">Info</button>
+    </div>
   </header>
 
   <!-- Main rates view -->
@@ -517,13 +870,36 @@
     <div class="rates-grid" id="ratesGrid"></div>
   </main>
 
+  <nav class="mobile-bottom-bar hidden" id="mobileBottomBar" aria-label="Primary actions">
+    <div class="mobile-bottom-bar__col" aria-hidden="true"></div>
+    <div class="mobile-bottom-bar__col mobile-bottom-bar__col--center">
+      <button type="button" class="mobile-bottom-bar__hit mobile-bottom-bar__hit--reset" id="resetCurrenciesBtn" aria-label="Reset and choose currencies again">
+        <img class="mobile-bottom-bar__icon--reset" src="assets/UI/reset.svg" alt="" decoding="async" width="46" height="46" />
+      </button>
+    </div>
+    <div class="mobile-bottom-bar__col mobile-bottom-bar__col--end">
+      <button type="button" class="mobile-bottom-bar__hit mobile-bottom-bar__hit--info" id="infoBtn" aria-label="Information">
+        <img class="mobile-bottom-bar__icon--info" src="assets/UI/info.svg" alt="" decoding="async" width="26" height="26" />
+      </button>
+    </div>
+  </nav>
+
+  <div id="infoModal" class="info-modal hidden" role="dialog" aria-modal="true" aria-labelledby="infoModalHeading">
+    <button type="button" class="info-modal__backdrop" id="infoModalBackdrop" aria-label="Close"></button>
+    <div class="info-modal__panel">
+      <h2 class="visually-hidden" id="infoModalHeading">Information</h2>
+      <button type="button" class="info-modal__close" id="infoModalClose" aria-label="Close">×</button>
+      <div class="info-modal__body" id="infoModalBody"></div>
+    </div>
+  </div>
+
   <!-- Setup sheet -->
   <div id="sheetBackdrop" class="sheet-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="sheet">
       <div class="sheet-handle" aria-hidden="true"></div>
 
       <div class="sheet-head">
-        <div class="sheet-title" id="sheetTitle">Set up Ledger</div>
+        <div class="sheet-title" id="sheetTitle">Set up primary currency</div>
         <div class="sheet-subtitle" id="sheetSubtitle">Scroll to browse, tap to select your base currency.</div>
       </div>
 
@@ -564,7 +940,7 @@
   <script type="module">
     import { fetchRates } from "./APIrequest.js";
 
-    const STORAGE_KEY = "ledgerV3";
+    const STORAGE_KEY = "ledger";
 
     let currenciesData = {};
     let currencyCodes  = [];
@@ -583,6 +959,14 @@
       amountLabel:         document.getElementById("amountLabel"),
       ratesGrid:           document.getElementById("ratesGrid"),
       changeCurrenciesBtn: document.getElementById("changeCurrenciesBtn"),
+      headerInfoBtn:       document.getElementById("headerInfoBtn"),
+      headerAttribution:   document.getElementById("headerAttribution"),
+      mobileBottomBar:     document.getElementById("mobileBottomBar"),
+      resetCurrenciesBtn:  document.getElementById("resetCurrenciesBtn"),
+      infoBtn:             document.getElementById("infoBtn"),
+      infoModal:           document.getElementById("infoModal"),
+      infoModalBackdrop:   document.getElementById("infoModalBackdrop"),
+      infoModalClose:      document.getElementById("infoModalClose"),
       sheetBackdrop:       document.getElementById("sheetBackdrop"),
       sheetTitle:          document.getElementById("sheetTitle"),
       sheetSubtitle:       document.getElementById("sheetSubtitle"),
@@ -598,7 +982,20 @@
       fetchStartBtn:       document.getElementById("fetchStartBtn"),
       setupError:          document.getElementById("setupError"),
       appFooter:           document.getElementById("appFooter"),
+      offlineBanner:       document.getElementById("offlineBanner"),
     };
+
+    // ── Online/Offline Notification ───────────────────────
+    function updateOnlineStatus() {
+      if (navigator.onLine) {
+        els.offlineBanner.classList.remove("is-offline");
+      } else {
+        els.offlineBanner.classList.add("is-offline");
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
 
     // ── Storage ──────────────────────────────────────────
     function loadConfig() {
@@ -611,6 +1008,54 @@
       return null;
     }
     function saveConfig(c) { localStorage.setItem(STORAGE_KEY, JSON.stringify(c)); }
+
+    function bindBarRipple(hitEl) {
+      hitEl.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0) return;
+        const ripple = document.createElement("span");
+        ripple.className = "mobile-bottom-bar__ripple";
+        const rect = hitEl.getBoundingClientRect();
+        ripple.style.left = `${e.clientX - rect.left}px`;
+        ripple.style.top = `${e.clientY - rect.top}px`;
+        hitEl.appendChild(ripple);
+        ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
+      });
+    }
+
+    function openInfoModal() {
+      els.infoModal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      els.infoModalClose.focus({ preventScroll: true });
+    }
+
+    function closeInfoModal() {
+      if (!els.infoModal.classList.contains("hidden")) {
+        els.infoModal.classList.add("hidden");
+        if (!els.sheetBackdrop.classList.contains("hidden")) return;
+        document.body.style.overflow = "";
+      }
+    }
+
+    function showRatesChrome() {
+      els.mainShell.classList.remove("hidden");
+      els.changeCurrenciesBtn.classList.remove("hidden");
+      els.headerInfoBtn.classList.remove("hidden");
+      els.appFooter.classList.remove("hidden");
+      els.headerAttribution.classList.remove("hidden");
+      els.mobileBottomBar.classList.remove("hidden");
+      document.body.classList.add("rates-view");
+    }
+
+    function hideRatesChrome() {
+      closeInfoModal();
+      els.mainShell.classList.add("hidden");
+      els.changeCurrenciesBtn.classList.add("hidden");
+      els.headerInfoBtn.classList.add("hidden");
+      els.appFooter.classList.add("hidden");
+      els.headerAttribution.classList.add("hidden");
+      els.mobileBottomBar.classList.add("hidden");
+      document.body.classList.remove("rates-view");
+    }
 
     // ── Sheet ─────────────────────────────────────────────
     function showSheet() { els.sheetBackdrop.classList.remove("hidden"); document.body.style.overflow = "hidden"; }
@@ -630,7 +1075,7 @@
           <div class="c-check" aria-hidden="true">
             <svg viewBox="0 0 12 10"><polyline points="1.5,5 4.5,8 10.5,2"/></svg>
           </div>
-          <span class="c-flag">${meta.flag}</span>
+          <img class="flag-img" src="${meta.flag}" alt="" decoding="async" loading="lazy" />
           <span class="c-code">${code}</span>
           <span class="c-name">${meta.name}</span>
         `;
@@ -673,7 +1118,6 @@
     }
 
     function attachCarouselEvents(carousel, mode) {
-      // ── Pointer: tap vs drag ──────────────────────────
       let pDown = false, pStartX = 0, pStartScroll = 0, pStartT = 0, pChip = null;
 
       carousel.addEventListener("pointerdown", e => {
@@ -724,7 +1168,6 @@
 
       carousel.addEventListener("pointercancel", () => { pDown = false; pChip = null; });
 
-      // ── Scroll end → update dim/focus + auto-select in single mode ──
       let scrollTimer;
       carousel.addEventListener("scroll", () => {
         clearTimeout(scrollTimer);
@@ -739,7 +1182,6 @@
         }, 55);
       }, { passive: true });
 
-      // ── Desktop mouse drag ────────────────────────────
       let mArmed = false, mDrag = false, mStartX = 0, mOrigin = 0;
 
       carousel.addEventListener("mousedown", e => {
@@ -768,7 +1210,7 @@
         const meta = currenciesData[code];
         const pill = document.createElement("div");
         pill.className = "pill";
-        pill.innerHTML = `${meta.flag} ${code}
+        pill.innerHTML = `<img class="flag-img" src="${meta.flag}" alt="" decoding="async" /> ${code}
           <button class="pill-remove" aria-label="Remove ${code}" data-code="${code}">×</button>`;
         pill.querySelector(".pill-remove").addEventListener("click", () => {
           if (selectedComps.size > 1) {
@@ -789,7 +1231,7 @@
       els.step2.classList.add("hidden");
       els.footStep1.classList.remove("hidden");
       els.footStep2.classList.add("hidden");
-      els.sheetTitle.textContent    = "Set up Ledger";
+      els.sheetTitle.textContent    = "Set up primary currency";
       els.sheetSubtitle.textContent = "Scroll to browse, tap to select your base currency.";
       if (!selectedBase || !currencyCodes.includes(selectedBase)) selectedBase = currencyCodes[0] || "";
       renderCarousel(els.carousel1, currencyCodes, "single");
@@ -871,7 +1313,7 @@
     function populateRatesView() {
       const { baseCurrency, comparators, rates, date, fetchedAt } = appConfig;
       const meta = currenciesData[baseCurrency];
-      els.baseFlag.textContent  = meta.flag;
+      els.baseFlag.innerHTML = `<img class="flag-img" src="${meta.flag}" alt="" decoding="async" />`;
       els.baseCode.textContent  = baseCurrency;
       els.baseName.textContent  = meta.name;
       els.amountLabel.textContent = baseCurrency;
@@ -888,7 +1330,7 @@
         card.className = "rate-card";
         card.dataset.code = code;
         card.innerHTML = `
-          <div class="rate-card-flag">${cm.flag}</div>
+          <div class="rate-card-flag"><img class="flag-img" src="${cm.flag}" alt="" decoding="async" /></div>
           <div class="rate-card-code">${code}</div>
           <div class="rate-card-name">${cm.name}</div>
           <div class="rate-card-converted">—</div>
@@ -918,8 +1360,19 @@
 
     // ── Bootstrap ──────────────────────────────────────────
     async function bootstrap() {
-      const res = await fetch("./currencies.json");
-      currenciesData = await res.json();
+      // Setup try/catch around JSON loading for offline-robustness
+      try {
+        const res = await fetch("./currencies.json");
+        if (!res.ok) throw new Error("Failed to load currencies");
+        currenciesData = await res.json();
+      } catch (err) {
+        console.warn("Using fallback currency data due to error:", err);
+        currenciesData = {
+          "EUR": { "name": "Euro", "flag": "assets/flags/eu.svg" },
+          "USD": { "name": "US Dollar", "flag": "assets/flags/us.svg" }
+        };
+      }
+      
       currencyCodes  = Object.keys(currenciesData);
 
       els.toStep2.addEventListener("click", showStep2);
@@ -942,9 +1395,7 @@
           appConfig = { baseCurrency: base, comparators: comps, rates, date, fetchedAt: Date.now() };
           saveConfig(appConfig);
           hideSheet();
-          els.mainShell.classList.remove("hidden");
-          els.changeCurrenciesBtn.classList.remove("hidden");
-          els.appFooter.classList.remove("hidden");
+          showRatesChrome();
           populateRatesView();
         } catch (err) {
           els.setupError.textContent = err.message || "Could not fetch rates.";
@@ -954,31 +1405,51 @@
         }
       });
 
-      els.changeCurrenciesBtn.addEventListener("click", () => {
-        els.mainShell.classList.add("hidden");
-        els.changeCurrenciesBtn.classList.add("hidden");
-        els.appFooter.classList.add("hidden");
+      function onResetLedger() {
+        hideRatesChrome();
         openSetupFromScratch();
+      }
+      els.changeCurrenciesBtn.addEventListener("click", onResetLedger);
+      els.headerInfoBtn.addEventListener("click", () => openInfoModal());
+      els.resetCurrenciesBtn.addEventListener("click", onResetLedger);
+      bindBarRipple(els.resetCurrenciesBtn);
+      bindBarRipple(els.infoBtn);
+
+      els.infoBtn.addEventListener("click", () => openInfoModal());
+      els.infoModalBackdrop.addEventListener("click", () => closeInfoModal());
+      els.infoModalClose.addEventListener("click", () => closeInfoModal());
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !els.infoModal.classList.contains("hidden")) closeInfoModal();
       });
 
       const existing = loadConfig();
       if (!existing) { showStep1(); showSheet(); return; }
 
       appConfig = existing;
-      els.mainShell.classList.remove("hidden");
-      els.changeCurrenciesBtn.classList.remove("hidden");
-      els.appFooter.classList.remove("hidden");
+      showRatesChrome();
       populateRatesView();
 
+      // Gracefully update rates in background 
       try {
         const { rates, date } = await fetchRates(existing.baseCurrency, existing.comparators);
         appConfig = { ...existing, rates, date, fetchedAt: Date.now() };
         saveConfig(appConfig);
         populateRatesView();
-      } catch { /* keep cached */ }
+      } catch { /* if offline, simply keep showing the cached data */ }
     }
 
     bootstrap();
+  </script>
+  
+  <!-- Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => console.log('SW Registered', registration.scope))
+          .catch(error => console.error('SW Registration Failed', error));
+      });
+    }
   </script>
 </body>
 </html>

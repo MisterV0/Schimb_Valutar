@@ -1,7 +1,7 @@
 {
-  "RON": { "name": "Romanian Leu", "flag": "🇷🇴" },
-  "EUR": { "name": "Euro", "flag": "🇪🇺" },
-  "USD": { "name": "US Dollar", "flag": "🇺🇸" },
-  "JPY": { "name": "Japanese Yen", "flag": "🇯🇵" },
-  "PLN": { "name": "Polish Złoty", "flag": "🇵🇱" }
+  "RON": { "name": "Romanian Leu", "flag": "assets/flags/ro.svg" },
+  "EUR": { "name": "Euro", "flag": "assets/flags/eu.svg" },
+  "USD": { "name": "US Dollar", "flag": "assets/flags/us.svg" },
+  "JPY": { "name": "Japanese Yen", "flag": "assets/flags/jp.svg" },
+  "PLN": { "name": "Polish Złoty", "flag": "assets/flags/pl.svg" }
 }
